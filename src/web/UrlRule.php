@@ -46,7 +46,7 @@ class UrlRule extends Object implements UrlRuleInterface
             throw new InvalidConfigException('Param "modelClass" can not be empty.');
         }
 
-        if (!is_subclass_of($this->className(), UrlRoute::className())) {
+        if (!is_subclass_of($this->modelClass, UrlRoute::className())) {
             throw new InvalidConfigException('Object "modelClass" must be implemented ' . UrlRoute::className());
         }
 
