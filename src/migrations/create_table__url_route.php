@@ -1,7 +1,14 @@
 <?php
 
+namespace voskobovich\seo\migrations;
+
 use yii\db\Migration;
 
+
+/**
+ * Class create_table__url_route
+ * @package voskobovich\seo\migrations
+ */
 class create_table__url_route extends Migration
 {
     private $_tableName = '{{%url_route}}';

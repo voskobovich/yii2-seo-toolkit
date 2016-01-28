@@ -29,6 +29,7 @@
     "psr-4": {
       "voskobovich\\seo\\behaviors\\": "src/behaviors",
       "voskobovich\\seo\\interfaces\\": "src/interfaces",
+      "voskobovich\\seo\\migrations\\": "src/migrations",
       "voskobovich\\seo\\models\\": "src/models",
       "voskobovich\\seo\\web\\": "src/web"
     }
