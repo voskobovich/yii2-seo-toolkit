@@ -1,0 +1,36 @@
+{
+  "name": "voskobovich/yii2-seo-toolkit",
+  "description": "SEO tools for Yii2",
+  "keywords": [
+    "seo",
+    "toolkit",
+    "yii2"
+  ],
+  "homepage": "https://github.com/voskobovich/yii2-seo-toolkit",
+  "type": "yii2-toolkit",
+  "license": "MIT",
+  "support": {
+    "issues": "https://github.com/voskobovich/yii2-seo-toolkit/issues",
+    "source": "https://github.com/voskobovich/yii2-seo-toolkit"
+  },
+  "authors": [
+    {
+      "name": "Vitaly Voskobovich",
+      "email": "vitaly@voskobovich.com",
+      "homepage": "http://voskobovich.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=5.4.0",
+    "yiisoft/yii2": "~2.0.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "voskobovich\\seo\\behaviors\\": "src/behaviors",
+      "voskobovich\\seo\\interfaces\\": "src/interfaces",
+      "voskobovich\\seo\\models\\": "src/models",
+      "voskobovich\\seo\\web\\": "src/web"
+    }
+  }
+}
