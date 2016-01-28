@@ -1,18 +1,26 @@
 <?php
 
-namespace app\seo\web;
+namespace voskobovich\seo\web;
 
 use Yii;
+use yii\base\Object;
 use yii\web\Request;
 use yii\web\UrlManager;
+use yii\web\UrlRuleInterface;
 
 
 /**
  * Class ClearUrlRule
- * @package app\seo\web
+ * @package voskobovich\seo\web
  */
-class ClearUrlRule extends BaseUrlRule
+class ClearUrlRule extends Object implements UrlRuleInterface
 {
+    /**
+     * Paths to skip
+     * @var array
+     */
+    public $skip = [];
+
     /**
      * Parses the given request and returns the corresponding route and parameters.
      * @param UrlManager $manager the URL manager
@@ -22,8 +30,10 @@ class ClearUrlRule extends BaseUrlRule
      */
     public function parseRequest($manager, $request)
     {
-        if (!parent::parseRequest($manager, $request)) {
-            return false;
+        foreach ($this->skip as $item) {
+            if (strpos($request->getPathInfo(), $item) !== false) {
+                return false;
+            }
         }
 
         $path = $request->getPathInfo();

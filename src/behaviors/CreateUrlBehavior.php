@@ -1,16 +1,16 @@
 <?php
 
-namespace app\seo\behaviors;
+namespace voskobovich\seo\behaviors;
 
-use app\seo\models\UrlRoute;
-use app\seo\interfaces\SeoUrlInterface;
+use voskobovich\seo\models\UrlRoute;
+use voskobovich\seo\interfaces\SeoModelInterface;
 use Yii;
 use yii\db\ActiveRecord;
 
 
 /**
  * Class CreateUrlBehavior
- * @package app\seo\behaviors
+ * @package voskobovich\seo\behaviors
  */
 class CreateUrlBehavior extends BaseUrlBehavior
 {
@@ -29,7 +29,7 @@ class CreateUrlBehavior extends BaseUrlBehavior
      */
     public function run()
     {
-        /** @var ActiveRecord|SeoUrlInterface $model */
+        /** @var ActiveRecord|SeoModelInterface $model */
         $model = $this->owner;
 
         if ($path = $model->getSeoPath()) {

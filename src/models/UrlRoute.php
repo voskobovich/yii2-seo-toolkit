@@ -1,7 +1,8 @@
 <?php
 
-namespace app\seo\models;
+namespace voskobovich\seo\models;
 
+use voskobovich\seo\interfaces\UrlRouteInterface;
 use yii\db\ActiveRecord;
 use Yii;
 use yii\helpers\Url;
@@ -17,16 +18,11 @@ use yii\helpers\Url;
  * @property integer $http_code
  * @property string $url_to
  */
-class UrlRoute extends ActiveRecord
+abstract class UrlRoute extends ActiveRecord implements UrlRouteInterface
 {
-    const OBJECT_CATEGORY = 1;
-    const OBJECT_POST = 2;
-    const OBJECT_TAG = 3;
-    const OBJECT_USER = 4;
-
-    const ACTION_OBJECT_INDEX = 1;
-    const ACTION_OBJECT_VIEW = 2;
-    const ACTION_REDIRECT = 3;
+    const ACTION_INDEX = 'index';
+    const ACTION_VIEW = 'view';
+    const ACTION_REDIRECT = 'redirect';
 
     /**
      * @inheritdoc
@@ -43,7 +39,8 @@ class UrlRoute extends ActiveRecord
     {
         return [
             [['path', 'action_key'], 'required'],
-            [['action_key', 'object_key', 'object_id'], 'integer'],
+            [['object_id'], 'integer'],
+            [['action_key', 'object_key'], 'string', 'max' => 30],
             ['http_code', 'integer', 'min' => 100, 'max' => 511],
             [['path', 'url_to'], 'string', 'max' => 255],
             ['path', 'unique'],
@@ -74,12 +71,7 @@ class UrlRoute extends ActiveRecord
      */
     public static function getObjectItems($key = null)
     {
-        $items = [
-            static::OBJECT_CATEGORY => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Category'),
-            static::OBJECT_POST => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Post'),
-            static::OBJECT_TAG => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Tag'),
-            static::OBJECT_USER => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'User'),
-        ];
+        $items = static::objectItems();
 
         if (!is_null($key)) {
             return isset($items[$key]) ? $items[$key] : null;
@@ -97,14 +89,56 @@ class UrlRoute extends ActiveRecord
     }
 
     /**
+     * @param null|integer $objectKey
+     * @param null|integer $actionKey
+     * @return array|null
+     */
+    protected static function getRouteMap($objectKey = null, $actionKey = null)
+    {
+        $items = static::routeMap();
+
+        if (!is_null($objectKey) || !is_null($actionKey)) {
+            return isset($items[$objectKey][$actionKey]) ? $items[$objectKey][$actionKey] : null;
+        }
+
+        return $items;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getRoute()
+    {
+        return static::getRouteMap($this->object_key, $this->action_key);
+    }
+
+    /**
+     * @param $route
+     * @return null|array
+     */
+    public static function getRouteParamsByName($route)
+    {
+        foreach (static::getRouteMap() as $objectKey => $actions) {
+            if (($actionKey = array_search($route, $actions)) !== false) {
+                return [
+                    'object_key' => $objectKey,
+                    'action_key' => $actionKey
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @param null $key
      * @return array
      */
     public static function getActionItems($key = null)
     {
         $items = [
-            static::ACTION_OBJECT_INDEX => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Open list'),
-            static::ACTION_OBJECT_VIEW => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Open object'),
+            static::ACTION_INDEX => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Open list'),
+            static::ACTION_VIEW => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Open object'),
             static::ACTION_REDIRECT => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Redirect'),
         ];
 
@@ -116,7 +150,6 @@ class UrlRoute extends ActiveRecord
     }
 
     /**
-     * Имя действия в модели
      * @return string
      */
     public function getAction()
@@ -125,7 +158,6 @@ class UrlRoute extends ActiveRecord
     }
 
     /**
-     * Проверка действия на равенство значения в модели
      * @param $actions
      * @return string
      */
@@ -136,68 +168,6 @@ class UrlRoute extends ActiveRecord
         }
 
         return $this->action_key == $actions;
-    }
-
-    /**
-     * Маппинг роутов для объекта и действия
-     * @param null|integer $objectKey
-     * @param null|integer $actionKey
-     * @return array|null
-     */
-    protected static function getObjectRouteItems($objectKey = null, $actionKey = null)
-    {
-        $items = [
-            static::OBJECT_CATEGORY => [
-                static::ACTION_OBJECT_INDEX => 'category/index',
-                static::ACTION_OBJECT_VIEW => 'category/view',
-            ],
-            static::OBJECT_POST => [
-                static::ACTION_OBJECT_INDEX => 'post/index',
-                static::ACTION_OBJECT_VIEW => 'post/view',
-            ],
-            static::OBJECT_TAG => [
-                static::ACTION_OBJECT_INDEX => 'tag/index',
-                static::ACTION_OBJECT_VIEW => 'tag/view',
-            ],
-            static::OBJECT_USER => [
-                static::ACTION_OBJECT_INDEX => 'user/index',
-                static::ACTION_OBJECT_VIEW => 'user/view',
-            ],
-        ];
-
-        if (!is_null($objectKey) || !is_null($actionKey)) {
-            return isset($items[$objectKey][$actionKey]) ? $items[$objectKey][$actionKey] : null;
-        }
-
-        return $items;
-    }
-
-    /**
-     * Имя роута для объекта и действия
-     * @return array|null
-     */
-    public function getRouteName()
-    {
-        return static::getObjectRouteItems($this->object_key, $this->action_key);
-    }
-
-    /**
-     * Поиск объекта и действия по роуту
-     * @param $route
-     * @return null|array
-     */
-    public static function getRouteParamsByName($route)
-    {
-        foreach (static::getObjectRouteItems() as $objectKey => $actions) {
-            if (($actionKey = array_search($route, $actions)) !== false) {
-                return [
-                    'object_key' => $objectKey,
-                    'action_key' => $actionKey
-                ];
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -223,7 +193,7 @@ class UrlRoute extends ActiveRecord
         $model = new static();
         $model->setAttributes([
             'path' => ltrim($path, '/'),
-            'action_key' => static::ACTION_OBJECT_VIEW,
+            'action_key' => static::ACTION_VIEW,
             'object_key' => $objectKey,
             'object_id' => $objectId,
         ]);

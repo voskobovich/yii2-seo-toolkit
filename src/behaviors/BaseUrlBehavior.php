@@ -1,8 +1,8 @@
 <?php
 
-namespace app\seo\behaviors;
+namespace voskobovich\seo\behaviors;
 
-use app\seo\interfaces\SeoUrlInterface;
+use voskobovich\seo\interfaces\SeoModelInterface;
 use Yii;
 use yii\base\Behavior;
 use yii\base\InvalidConfigException;
@@ -10,7 +10,7 @@ use yii\base\InvalidConfigException;
 
 /**
  * Class BaseUrlBehavior
- * @package app\seo\behaviors
+ * @package voskobovich\seo\behaviors
  */
 abstract class BaseUrlBehavior extends Behavior
 {
@@ -28,7 +28,7 @@ abstract class BaseUrlBehavior extends Behavior
     {
         parent::attach($owner);
 
-        if ($owner && !$owner instanceof SeoUrlInterface) {
+        if ($owner && !$owner instanceof SeoModelInterface) {
             throw new InvalidConfigException('Owner must be implemented "app\seo\interfaces\SeoUrlInterface"');
         }
     }
@@ -41,7 +41,7 @@ abstract class BaseUrlBehavior extends Behavior
         parent::init();
 
         if ($this->objectKey == null) {
-            throw new InvalidConfigException('Param "actionKey" must be contain UrlRoute::OBJECT_*.');
+            throw new InvalidConfigException('Param "actionKey" must be contain object key.');
         }
     }
 }

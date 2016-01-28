@@ -1,30 +1,57 @@
 <?php
 
-namespace app\seo\web;
+namespace voskobovich\seo\web;
 
-use app\seo\models\UrlRoute;
+use voskobovich\seo\models\UrlRoute;
 use Yii;
+use yii\base\InvalidConfigException;
+use yii\base\Object;
 use yii\web\Request;
 use yii\web\UrlManager;
+use yii\web\UrlRuleInterface;
 
 
 /**
  * Class UrlRule
- * @package app\seo\web
+ * @package voskobovich\seo\web
  */
-class UrlRule extends BaseUrlRule
+class UrlRule extends Object implements UrlRuleInterface
 {
     /**
      * UrlRoute model namespace
      * @var string
      */
-    public $modelClass = 'voskobovich\seo\models\UrlRoute';
+    public $modelClass;
+
+    /**
+     * Paths to skip
+     * @var array
+     */
+    public $skip = [];
 
     /**
      * Duration Cache
      * @var int
      */
     public $cacheDuration = 60;
+
+    /**
+     * @inheritdoc
+     *
+     * @throws InvalidConfigException
+     */
+    public function init()
+    {
+        if (!$this->modelClass) {
+            throw new InvalidConfigException('Param "modelClass" can not be empty.');
+        }
+
+        if (!is_subclass_of($this->className(), UrlRoute::className())) {
+            throw new InvalidConfigException('Object "modelClass" must be implemented ' . UrlRoute::className());
+        }
+
+        parent::init();
+    }
 
     /**
      * Parses the given request and returns the corresponding route and parameters.
@@ -35,12 +62,14 @@ class UrlRule extends BaseUrlRule
      */
     public function parseRequest($manager, $request)
     {
-        if (!parent::parseRequest($manager, $request)) {
-            return false;
+        foreach ($this->skip as $item) {
+            if (strpos($request->getPathInfo(), $item) !== false) {
+                return false;
+            }
         }
 
         /** @var UrlRoute $model */
-        $model = new $this->modelClass();
+        $model = $this->modelClass;
         $model = $model::find()
             ->andWhere(['path' => $request->getPathInfo()])
             ->one();
@@ -49,10 +78,10 @@ class UrlRule extends BaseUrlRule
             return false;
         }
 
-        if ($model->checkAction($model::ACTION_OBJECT_INDEX)) {
-            return [$model->getRouteName()];
-        } elseif ($model->checkAction($model::ACTION_OBJECT_VIEW)) {
-            return [$model->getRouteName(), ['id' => $model->object_id]];
+        if ($model->checkAction($model::ACTION_INDEX)) {
+            return [$model->getRoute()];
+        } elseif ($model->checkAction($model::ACTION_VIEW)) {
+            return [$model->getRoute(), ['id' => $model->object_id]];
         } elseif ($model->checkAction($model::ACTION_REDIRECT)) {
             $url = $model->url_to;
             if (strpos($url, 'http://') === false) {
@@ -75,12 +104,14 @@ class UrlRule extends BaseUrlRule
      */
     public function createUrl($manager, $route, $params)
     {
-        if (!parent::createUrl($manager, $route, $params)) {
-            return false;
+        foreach ($this->skip as $item) {
+            if (strpos($route, $item) !== false) {
+                return false;
+            }
         }
 
         /** @var UrlRoute $model */
-        $model = new $this->modelClass();
+        $model = $this->modelClass;
         $routeParams = $model::getRouteParamsByName($route);
         if (empty($params)) {
             return false;

@@ -5,12 +5,16 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace app\seo\web;
+namespace voskobovich\seo\web;
 
 use Yii;
 use yii\web\UrlRule;
 
 
+/**
+ * Class UrlManager
+ * @package voskobovich\seo\web
+ */
 class UrlManager extends \yii\web\UrlManager
 {
     public $cacheable = true;

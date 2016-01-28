@@ -17,15 +17,15 @@ class create_table__url_route extends Migration
         $this->createTable($this->_tableName, [
             'id' => $this->primaryKey(),
             'path' => $this->string()->notNull(),
-            'action_key' => $this->smallInteger()->notNull(),
-            'object_key' => $this->smallInteger(),
+            'action_key' => $this->string(30)->notNull(),
+            'object_key' => $this->string(30),
             'object_id' => $this->integer(),
             'http_code' => $this->smallInteger(),
             'url_to' => $this->string(),
         ], $tableOptions);
 
-        $this->createIndex('idx_url_route_path', $this->_tableName, ['path'], true);
-        $this->createIndex('idx_url_fields', $this->_tableName, ['action_key', 'object_key', 'object_id']);
+        $this->createIndex('idx__url_route__path', $this->_tableName, ['path'], true);
+        $this->createIndex('idx__url_route__fields', $this->_tableName, ['action_key', 'object_key', 'object_id']);
     }
 
     public function safeDown()

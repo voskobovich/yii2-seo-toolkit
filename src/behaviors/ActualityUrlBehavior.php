@@ -1,8 +1,8 @@
 <?php
 
-namespace app\seo\behaviors;
+namespace voskobovich\seo\behaviors;
 
-use app\seo\models\UrlRoute;
+use voskobovich\seo\models\UrlRoute;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\db\ActiveRecord;
@@ -10,7 +10,7 @@ use yii\db\ActiveRecord;
 
 /**
  * Class ActualityUrlBehavior
- * @package app\seo\behaviors
+ * @package voskobovich\seo\behaviors
  */
 class ActualityUrlBehavior extends BaseUrlBehavior
 {
@@ -18,7 +18,13 @@ class ActualityUrlBehavior extends BaseUrlBehavior
      * Redirect HTTP Code
      * @var int
      */
-    public $httpCode = 301;
+    public $redirectCode = 301;
+
+    /**
+     * Action key
+     * @var int
+     */
+    public $actionKey = UrlRoute::ACTION_VIEW;
 
     /**
      * @inheritdoc
@@ -38,10 +44,6 @@ class ActualityUrlBehavior extends BaseUrlBehavior
     {
         $request = Yii::$app->request;
 
-        if (strpos($request->getPathInfo(), 'backend') !== false) {
-            return;
-        }
-
         /** @var ActiveRecord $model */
         $model = $this->owner;
 
@@ -49,7 +51,7 @@ class ActualityUrlBehavior extends BaseUrlBehavior
         $urlRoute = UrlRoute::find()
             ->select(['action_key', 'object_key', 'object_id', 'path'])
             ->andWhere([
-                'action_key' => UrlRoute::ACTION_OBJECT_VIEW,
+                'action_key' => $this->actionKey,
                 'object_key' => $this->objectKey,
                 'object_id' => $model->getPrimaryKey(),
             ])
@@ -60,7 +62,7 @@ class ActualityUrlBehavior extends BaseUrlBehavior
         }
 
         if ($urlRoute->path !== $request->getPathInfo()) {
-            Yii::$app->getResponse()->redirect([$urlRoute->path], $this->httpCode);
+            Yii::$app->getResponse()->redirect([$urlRoute->path], $this->redirectCode);
             Yii::$app->end();
         }
     }
