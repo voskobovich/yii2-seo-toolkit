@@ -33,7 +33,9 @@ class CreateUrlBehavior extends BaseUrlBehavior
         $model = $this->owner;
 
         if ($path = $model->getSeoPath()) {
-            UrlRoute::add($this->objectKey, $model->getPrimaryKey(), $path);
+            /** @var UrlRoute $urlRoute */
+            $urlRoute = $this->modelClass;
+            $urlRoute::add($this->objectKey, $model->getPrimaryKey(), $path);
         }
     }
 }

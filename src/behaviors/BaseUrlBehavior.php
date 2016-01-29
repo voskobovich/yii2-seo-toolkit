@@ -3,6 +3,7 @@
 namespace voskobovich\seo\behaviors;
 
 use voskobovich\seo\interfaces\SeoModelInterface;
+use voskobovich\seo\models\UrlRoute;
 use Yii;
 use yii\base\Behavior;
 use yii\base\InvalidConfigException;
@@ -14,6 +15,12 @@ use yii\base\InvalidConfigException;
  */
 abstract class BaseUrlBehavior extends Behavior
 {
+    /**
+     * UrlRoute model namespace
+     * @var string
+     */
+    public $modelClass;
+
     /**
      * UrlRoute object key
      * @var int
@@ -38,10 +45,18 @@ abstract class BaseUrlBehavior extends Behavior
      */
     public function init()
     {
-        parent::init();
-
         if ($this->objectKey == null) {
             throw new InvalidConfigException('Param "actionKey" must be contain object key.');
         }
+
+        if (!$this->modelClass) {
+            throw new InvalidConfigException('Param "modelClass" can not be empty.');
+        }
+
+        if (!is_subclass_of($this->modelClass, UrlRoute::className())) {
+            throw new InvalidConfigException('Object "modelClass" must be implemented ' . UrlRoute::className());
+        }
+
+        parent::init();
     }
 }

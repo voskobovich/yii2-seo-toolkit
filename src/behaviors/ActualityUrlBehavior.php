@@ -48,7 +48,8 @@ class ActualityUrlBehavior extends BaseUrlBehavior
         $model = $this->owner;
 
         /** @var UrlRoute $urlRoute */
-        $urlRoute = UrlRoute::find()
+        $urlRoute = $this->modelClass;
+        $urlRoute = $urlRoute::find()
             ->select(['action_key', 'object_key', 'object_id', 'path'])
             ->andWhere([
                 'action_key' => $this->actionKey,
