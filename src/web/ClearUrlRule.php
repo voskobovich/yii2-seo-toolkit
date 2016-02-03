@@ -5,7 +5,6 @@ namespace voskobovich\seo\web;
 use Yii;
 use yii\base\Object;
 use yii\web\Request;
-use yii\web\UrlManager;
 use yii\web\UrlRuleInterface;
 
 

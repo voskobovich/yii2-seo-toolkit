@@ -7,7 +7,6 @@ use Yii;
 use yii\base\InvalidConfigException;
 use yii\base\Object;
 use yii\web\Request;
-use yii\web\UrlManager;
 use yii\web\UrlRuleInterface;
 
 
