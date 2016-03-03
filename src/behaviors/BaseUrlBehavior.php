@@ -36,7 +36,7 @@ abstract class BaseUrlBehavior extends Behavior
         parent::attach($owner);
 
         if ($owner && !$owner instanceof SeoModelInterface) {
-            throw new InvalidConfigException('Owner must be implemented "app\seo\interfaces\SeoUrlInterface"');
+            throw new InvalidConfigException('Owner must be implemented "app\seo\interfaces\SeoModelInterface"');
         }
     }
 
