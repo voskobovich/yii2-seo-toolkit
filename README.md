@@ -1,6 +1,6 @@
 Yii2 SEO Toolkit
 ===
-Поведение реализует управление роутингом из админки. Подобная система управления роутами реализована в WordPress.
+Помогает реализовать роутинг как в CRM WordPress с управлением из админпанели.
 
 [![License](https://poser.pugx.org/voskobovich/yii2-seo-toolkit/license.svg)](https://packagist.org/packages/voskobovich/yii2-seo-toolkit)
 [![Latest Stable Version](https://poser.pugx.org/voskobovich/yii2-seo-toolkit/v/stable.svg)](https://packagist.org/packages/voskobovich/yii2-seo-toolkit)
@@ -9,7 +9,7 @@ Yii2 SEO Toolkit
 
 Support
 ---
-[GutHub issues](https://github.com/voskobovich/yii2-many-to-many-behavior/issues).
+[GutHub issues](https://github.com/voskobovich/yii2-seo-toolkit/issues).
 
 Usage
 ---
