@@ -32,7 +32,7 @@ Usage
 ```bash
 php yii migrate/create create_table__url_route
 ```
-Унаследуйте созданный класс миграции от **\voskobovich\seo\migrations\create_table__url_route**.
+Унаследуйте созданный класс миграции от **\voskobovich\seo\migrations\create_table__url_route**.  
 Например:
 ```php
 class <ClassName> extends \voskobovich\seo\migrations\create_table__url_route
@@ -223,7 +223,8 @@ class PostController extends Controller
 
 6. Создаем CRUD для управления роутами
 ---
-Во вьюхах есть небольшая логика, так что привожу примеры основных кусков кода из своего проекта.
+Во вьюхах есть небольшая логика, так что привожу примеры основных кусков кода из своего проекта.  
+
 Файл **create.php**
 ```php
 <?php $form = ActiveForm::begin() ?>
@@ -235,6 +236,7 @@ class PostController extends Controller
 
 <?php ActiveForm::end() ?>
 ```
+
 Файл **update.php**
 ```php
 <?php $form = ActiveForm::begin() ?>
@@ -256,6 +258,7 @@ class PostController extends Controller
 
 <?php ActiveForm::end() ?>
 ```
+
 Файл **index.php**
 ```php
 <?= GridView::widget([
