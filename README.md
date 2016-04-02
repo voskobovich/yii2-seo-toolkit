@@ -1,6 +1,6 @@
 Yii2 SEO Toolkit
 ===
-Помогает реализовать роутинг как в CRM WordPress с управлением из админпанели.
+Помогает реализовать управление урлами страниц системы как в CMS WordPress, с управлением из админпанели таблицей маршрутизации и редиректами.
 
 [![License](https://poser.pugx.org/voskobovich/yii2-seo-toolkit/license.svg)](https://packagist.org/packages/voskobovich/yii2-seo-toolkit)
 [![Latest Stable Version](https://poser.pugx.org/voskobovich/yii2-seo-toolkit/v/stable.svg)](https://packagist.org/packages/voskobovich/yii2-seo-toolkit)
