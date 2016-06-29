@@ -178,26 +178,57 @@ abstract class UrlRoute extends ActiveRecord implements UrlRouteInterface
      */
     public static function add($objectKey, $objectId, $path)
     {
+        /** @var static $model */
         $model = static::find()
             ->andWhere([
                 'object_key' => $objectKey,
                 'object_id' => $objectId
             ])
             ->select(['object_key', 'object_id'])
-            ->count();
+            ->one();
+
+        $path = ltrim($path, '/');
 
         if ($model) {
-            return true;
+            if ($model->path == $path) {
+                return true;
+            }
+
+            $model->setAttribute('path', $path);
+            return $model->save();
         }
 
         $model = new static();
         $model->setAttributes([
-            'path' => ltrim($path, '/'),
+            'path' => $path,
             'action_key' => static::ACTION_VIEW,
             'object_key' => $objectKey,
             'object_id' => $objectId,
         ]);
         return $model->save();
+    }
+
+    /**
+     * @param $objectKey
+     * @param $objectId
+     * @return int
+     */
+    public static function remove($objectKey, $objectId)
+    {
+        /** @var static $model */
+        $model = static::find()
+            ->andWhere([
+                'object_key' => $objectKey,
+                'object_id' => $objectId
+            ])
+            ->select(['object_key', 'object_id'])
+            ->one();
+
+        if (!$model) {
+            return true;
+        }
+
+        return $model->delete() > 0;
     }
 
     /**
