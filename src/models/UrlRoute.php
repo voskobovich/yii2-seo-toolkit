@@ -184,7 +184,6 @@ abstract class UrlRoute extends ActiveRecord implements UrlRouteInterface
                 'object_key' => $objectKey,
                 'object_id' => $objectId
             ])
-            ->select(['object_key', 'object_id', 'path'])
             ->one();
 
         $path = ltrim($path, '/');
@@ -195,16 +194,16 @@ abstract class UrlRoute extends ActiveRecord implements UrlRouteInterface
             }
 
             $model->setAttribute('path', $path);
-            return $model->save();
+        } else {
+            $model = new static();
+            $model->setAttributes([
+                'path' => $path,
+                'action_key' => static::ACTION_VIEW,
+                'object_key' => $objectKey,
+                'object_id' => $objectId,
+            ]);
         }
 
-        $model = new static();
-        $model->setAttributes([
-            'path' => $path,
-            'action_key' => static::ACTION_VIEW,
-            'object_key' => $objectKey,
-            'object_id' => $objectId,
-        ]);
         return $model->save();
     }
 
