@@ -161,6 +161,11 @@ class Post extends BaseActiveRecord implements SeoModelInterface
                 'modelClass' => UrlRoute::className(),
                 'objectKey' => UrlRoute::OBJECT_POST
             ],
+            'actualityUrlBehavior' => [
+                'class' => ActualityUrlBehavior::className(),
+                'modelClass' => UrlRoute::className(),
+                'objectKey' => UrlRoute::OBJECT_POST
+            ]
         ];
     }
 
@@ -204,11 +209,7 @@ class PostController extends Controller
             ->andWhere(['id' => $id])
             ->one();
 
-        $model->attachBehavior('actualityUrlBehavior', [
-            'class' => ActualityUrlBehavior::className(),
-            'modelClass' => UrlRoute::className(),
-            'objectKey' => UrlRoute::OBJECT_POST
-        ]);
+        $model->trigger(ActualityUrlBehavior::EVENT_CHECK_URL);
 
         return $this->render('view', [
             'model' => $model
