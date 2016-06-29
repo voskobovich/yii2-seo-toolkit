@@ -15,6 +15,11 @@ use yii\db\ActiveRecord;
 class ActualityUrlBehavior extends BaseUrlBehavior
 {
     /**
+     * Event name
+     */
+    const EVENT_CHECK_URL = 'event_actuality_url';
+
+    /**
      * Redirect HTTP Code
      * @var int
      */
@@ -32,7 +37,7 @@ class ActualityUrlBehavior extends BaseUrlBehavior
     public function events()
     {
         return [
-            ActiveRecord::EVENT_AFTER_FIND => 'run',
+            static::EVENT_CHECK_URL => 'run',
         ];
     }
 
