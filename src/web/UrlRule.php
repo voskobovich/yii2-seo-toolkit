@@ -1,154 +1,242 @@
 <?php
 
-namespace voskobovich\seo\web;
+namespace voskobovich\seo\models;
 
-use voskobovich\seo\models\UrlRoute;
+use voskobovich\seo\interfaces\UrlRouteInterface;
+use yii\db\ActiveRecord;
 use Yii;
-use yii\base\InvalidConfigException;
-use yii\base\Object;
-use yii\web\Request;
-use yii\web\UrlRuleInterface;
+use yii\helpers\Url;
 
 
 /**
- * Class UrlRule
- * @package voskobovich\seo\web
+ * This is the model class for table "{{%url_route}}".
+ *
+ * @property string $path
+ * @property integer $action_key
+ * @property integer $object_key
+ * @property integer $object_id
+ * @property integer $http_code
+ * @property string $url_to
  */
-class UrlRule extends Object implements UrlRuleInterface
+abstract class UrlRoute extends ActiveRecord implements UrlRouteInterface
 {
-    /**
-     * UrlRoute model namespace
-     * @var string
-     */
-    public $modelClass;
-
-    /**
-     * Paths to skip
-     * @var array
-     */
-    public $skip = [];
-
-    /**
-     * Duration Cache
-     * @var int
-     */
-    public $cacheDuration = 60;
+    const ACTION_INDEX = 'index';
+    const ACTION_VIEW = 'view';
+    const ACTION_REDIRECT = 'redirect';
 
     /**
      * @inheritdoc
-     *
-     * @throws InvalidConfigException
      */
-    public function init()
+    public static function tableName()
     {
-        if (!$this->modelClass) {
-            throw new InvalidConfigException('Param "modelClass" can not be empty.');
-        }
-
-        if (!is_subclass_of($this->modelClass, UrlRoute::className())) {
-            throw new InvalidConfigException('Object "modelClass" must be implemented ' . UrlRoute::className());
-        }
-
-        parent::init();
+        return '{{%url_route}}';
     }
 
     /**
-     * Parses the given request and returns the corresponding route and parameters.
-     * @param UrlManager $manager the URL manager
-     * @param Request $request the request component
-     * @return array|boolean the parsing result. The route and the parameters are returned as an array.
-     * If false, it means this rule cannot be used to parse this path info.
+     * @inheritdoc
      */
-    public function parseRequest($manager, $request)
+    public function rules()
     {
-        foreach ($this->skip as $item) {
-            if (strpos($request->getPathInfo(), $item) !== false) {
-                return false;
+        return [
+            [['path', 'action_key'], 'required'],
+            [['object_id'], 'integer'],
+            [['action_key', 'object_key'], 'string', 'max' => 30],
+            ['http_code', 'integer', 'min' => 100, 'max' => 511],
+            [['path', 'url_to'], 'string', 'max' => 255],
+            ['path', 'unique'],
+            ['path', 'match', 'pattern' => '/^[a-z0-9-_][a-z0-9-_\/]{1,254}[a-z0-9-_]$/'],
+            ['object_key', 'in', 'range' => array_keys(static::getObjectItems()), 'skipOnEmpty' => true],
+            ['action_key', 'in', 'range' => array_keys(static::getActionItems())],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'path' => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Path'),
+            'action_key' => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Action'),
+            'object_key' => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Object'),
+            'object_id' => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'ID'),
+            'http_code' => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'HTTP Code'),
+            'url_to' => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Destination URL'),
+        ];
+    }
+
+    /**
+     * @param null $key
+     * @return array
+     */
+    public static function getObjectItems($key = null)
+    {
+        $items = static::objectItems();
+
+        if (!is_null($key)) {
+            return isset($items[$key]) ? $items[$key] : null;
+        }
+
+        return $items;
+    }
+
+    /**
+     * @return string
+     */
+    public function getObject()
+    {
+        return static::getObjectItems($this->object_key);
+    }
+
+    /**
+     * @param null|integer $objectKey
+     * @param null|integer $actionKey
+     * @return array|null
+     */
+    protected static function getRouteMap($objectKey = null, $actionKey = null)
+    {
+        $items = static::routeMap();
+
+        if (!is_null($objectKey) || !is_null($actionKey)) {
+            return isset($items[$objectKey][$actionKey]) ? $items[$objectKey][$actionKey] : null;
+        }
+
+        return $items;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getRoute()
+    {
+        return static::getRouteMap($this->object_key, $this->action_key);
+    }
+
+    /**
+     * @param $route
+     * @return null|array
+     */
+    public static function getRouteParamsByName($route)
+    {
+        foreach (static::getRouteMap() as $objectKey => $actions) {
+            if (($actionKey = array_search($route, $actions)) !== false) {
+                return [
+                    'object_key' => $objectKey,
+                    'action_key' => $actionKey
+                ];
             }
         }
 
-        /** @var UrlRoute $model */
-        $model = $this->modelClass;
-        $model = $model::find()
-            ->andWhere(['path' => $request->getPathInfo()])
+        return null;
+    }
+
+    /**
+     * @param null $key
+     * @return array
+     */
+    public static function getActionItems($key = null)
+    {
+        $items = [
+            static::ACTION_INDEX => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Open list'),
+            static::ACTION_VIEW => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Open object'),
+            static::ACTION_REDIRECT => Yii::t('vendor/voskobovich/yii2-seo-toolkit/models/urlRoute', 'Redirect'),
+        ];
+
+        if (!is_null($key)) {
+            return isset($items[$key]) ? $items[$key] : null;
+        }
+
+        return $items;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAction()
+    {
+        return static::getActionItems($this->action_key);
+    }
+
+    /**
+     * @param $actions
+     * @return string
+     */
+    public function checkAction($actions)
+    {
+        if (is_array($actions)) {
+            return array_search($this->action_key, $actions) !== false;
+        }
+
+        return $this->action_key == $actions;
+    }
+
+    /**
+     * @param $objectKey
+     * @param $objectId
+     * @param $path
+     * @return bool
+     */
+    public static function add($objectKey, $objectId, $path)
+    {
+        /** @var static $model */
+        $model = static::find()
+            ->andWhere([
+                'object_key' => $objectKey,
+                'object_id' => $objectId
+            ])
+            ->select(['object_key', 'object_id'])
             ->one();
 
-        if ($model == null) {
-            return false;
-        }
+        $path = ltrim($path, '/');
 
-        if ($model->checkAction($model::ACTION_INDEX)) {
-            return [$model->getRoute()];
-        } elseif ($model->checkAction($model::ACTION_VIEW)) {
-            return [$model->getRoute(), ['id' => $model->object_id]];
-        } elseif ($model->checkAction($model::ACTION_REDIRECT)) {
-            $url = $model->url_to;
-            if (strpos($url, 'http://') === false) {
-                $url = [$url];
+        if ($model) {
+            if ($model->path == $path) {
+                return true;
             }
 
-            Yii::$app->response->redirect($url, $model->http_code);
-            Yii::$app->end();
+            $model->setAttribute('path', $path);
+            return $model->save();
         }
 
-        return false;
+        $model = new static();
+        $model->setAttributes([
+            'path' => $path,
+            'action_key' => static::ACTION_VIEW,
+            'object_key' => $objectKey,
+            'object_id' => $objectId,
+        ]);
+        return $model->save();
     }
 
     /**
-     * Creates a URL according to the given route and parameters.
-     * @param UrlManager $manager the URL manager
-     * @param string $route the route. It should not have slashes at the beginning or the end.
-     * @param array $params the parameters
-     * @return string|boolean the created URL, or false if this rule cannot be used for creating this URL.
+     * @param $objectKey
+     * @param $objectId
+     * @return int
      */
-    public function createUrl($manager, $route, $params)
+    public static function remove($objectKey, $objectId)
     {
-        foreach ($this->skip as $item) {
-            if (strpos($route, $item) !== false) {
-                return false;
-            }
-        }
-
-        /** @var UrlRoute $model */
-        $model = $this->modelClass;
-        $routeParams = $model::getRouteParamsByName($route);
-        if (empty($params)) {
-            return false;
-        }
-
-        $cacheKey = $this->modelClass . '::createUrl:' . $routeParams['action_key'] . '-' . $routeParams['object_key'];
-        $query = $model::find()
-            ->select(['action_key', 'object_key', 'path'])
+        /** @var static $model */
+        $model = static::find()
             ->andWhere([
-                'action_key' => $routeParams['action_key'],
-                'object_key' => $routeParams['object_key'],
-            ]);
+                'object_key' => $objectKey,
+                'object_id' => $objectId
+            ])
+            ->select(['object_key', 'object_id'])
+            ->one();
 
-        if (!empty($params['id'])) {
-            $cacheKey .= '-' . $params['id'];
-            $query->addSelect(['object_id']);
-            $query->andWhere([
-                'object_id' => $params['id'],
-            ]);
-            unset($params['id']);
+        if (!$model) {
+            return true;
         }
 
-        if (!$url = Yii::$app->cache->get($cacheKey)) {
-            /** @var UrlRoute $model */
-            $model = $query->one();
+        return $model->delete() > 0;
+    }
 
-            if ($model == null) {
-                return false;
-            }
-
-            $url = trim($model->path, '/');
-            if (!empty($params) && ($query = http_build_query($params)) !== '') {
-                $url .= '?' . $query;
-            }
-
-            Yii::$app->cache->set($cacheKey, $url, $this->cacheDuration);
-        }
-
-        return $url;
+    /**
+     * @param bool $isAbsolute
+     * @return string
+     */
+    public function viewUrl($isAbsolute = false)
+    {
+        return Url::toRoute('/' . $this->path, $isAbsolute);
     }
 }
